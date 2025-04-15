@@ -30,12 +30,13 @@ public class RidgeHexGrid : MonoBehaviour
     [Header("Noise")] [SerializeField] private FastNoiseLite biomesNoise;
     [SerializeField] private FastNoiseLite plainNoise;
     [SerializeField] private FastNoiseLite ridgeNoise;
-
-    [Header("Textures")] [SerializeField] private Texture2D plainTexture;
+/*
+    [Header("Textures")] [SerializeField] 
+    private Texture2D plainTexture;
     [SerializeField] private Texture2D hillTexture;
     [SerializeField] private Texture2D waterTexture;
     [SerializeField] private Texture2D mountainTexture;
-
+*/
     [Header("Appearance")] [SerializeField]
     private bool smoothNormals = false;
 
@@ -179,13 +180,13 @@ public class RidgeHexGrid : MonoBehaviour
             if (terrainMaterial != null)
             {
                 material = new Material(terrainMaterial);
-
+/*
                 // Assign textures
                 if (waterTexture != null) material.SetTexture("_WaterTexture", waterTexture);
                 if (plainTexture != null) material.SetTexture("_PlainTexture", plainTexture);
                 if (hillTexture != null) material.SetTexture("_HillTexture", hillTexture);
                 if (mountainTexture != null) material.SetTexture("_MountainTexture", mountainTexture);
-
+*/
                 // Set terrain parameters
                 material.SetFloat("_TopOffset", _ridgeConfig.TopRidgeOffset);
                 material.SetFloat("_BottomOffset", _ridgeConfig.BottomRidgeOffset);
@@ -199,7 +200,6 @@ public class RidgeHexGrid : MonoBehaviour
             // Create hex mesh parameters
             HexMeshParams hexParams = new HexMeshParams
             {
-                Id = i,
                 Diameter = diameter,
                 Divisions = divisions,
                 FrameState = frameState,
@@ -225,7 +225,7 @@ public class RidgeHexGrid : MonoBehaviour
 
             // Add mesh filter and renderer
             MeshFilter meshFilter = tileObj.AddComponent<MeshFilter>();
-            meshFilter.mesh = ridgeMesh.Mesh;
+            meshFilter.mesh = ridgeMesh.Mesh.Mesh;
 
             MeshRenderer meshRenderer = tileObj.AddComponent<MeshRenderer>();
             meshRenderer.material = material;

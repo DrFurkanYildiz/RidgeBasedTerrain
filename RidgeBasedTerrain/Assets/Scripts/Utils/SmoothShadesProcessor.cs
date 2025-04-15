@@ -92,9 +92,9 @@ public class SmoothShadesProcessor
     /// </summary>
     private DiscreteVertexToNormals GetDiscreteVertexToNormals(RidgeMesh mesh)
     {
-        Mesh unityMesh = mesh.Mesh;
-        Vector3[] vertices = unityMesh.vertices;
-        Vector3[] normals = unityMesh.normals;
+        HexMesh hexMesh = mesh.Mesh;
+        Vector3[] vertices = hexMesh.Vertices.ToArray();
+        Vector3[] normals = hexMesh.Normals.ToArray();
         
         DiscreteVertexToNormals result = new DiscreteVertexToNormals();
         float discretizationStep = 0.0001f; // Small step for precision

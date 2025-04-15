@@ -470,7 +470,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 715418a06a084bf2aa166db22e8e19d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  diameter: 2
+  diameter: 1
   divisions: 10
   frameState: 0
   frameOffset: 0

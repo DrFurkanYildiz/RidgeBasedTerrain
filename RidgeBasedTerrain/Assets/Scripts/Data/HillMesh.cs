@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 /// <summary>
 /// Hill mesh implementation for elevated terrain
 /// </summary>
@@ -11,9 +12,9 @@ public class HillMesh : RidgeMesh
         ShiftCompress();
         
         // Apply hill heights transformation
-        Vector3[] vertices = _mesh.vertices;
+        Vector3[] vertices = Mesh.Vertices.ToArray();
         _processor.CalculateHillHeights(vertices, diameter/4, diameter/2, GetCenter());
-        _mesh.vertices = vertices;
+        Mesh.Vertices = vertices.ToList();
         
         // Update min/max heights
         _minHeight += _yShift;

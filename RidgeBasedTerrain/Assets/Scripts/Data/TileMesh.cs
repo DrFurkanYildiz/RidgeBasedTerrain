@@ -7,14 +7,9 @@ using UnityEngine;
 public abstract class TileMesh
 {
     /// <summary>
-    /// Gets the unique identifier of this tile mesh
-    /// </summary>
-    public abstract int GetId();
-    
-    /// <summary>
     /// Gets the Unity mesh object
     /// </summary>
-    public abstract Mesh Mesh { get; }
+    public abstract HexMesh Mesh { get; }
 }
 
 

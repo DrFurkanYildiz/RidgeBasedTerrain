@@ -9,16 +9,10 @@ using UnityEngine;
 public class RidgeMesh : TileMesh, IRidgeBased
 {
     // Hexagon parameters
-    protected Hexagon _hexagon;
-    public Hexagon GetHexagon => _hexagon;
-    protected Mesh _mesh;
-    protected int _id;
-    protected float _diameter;
-    protected int _divisions;
-    protected bool _frameState;
-    protected float _frameOffset;
-    protected Material _material;
-    
+    public override HexMesh Mesh { get; }
+    private HexMeshParams _hexMeshParams;
+    public Hexagon GetHexagon { get; }
+
     // Terrain parameters
     protected FastNoiseLite _plainNoise;
     protected FastNoiseLite _ridgeNoise;
@@ -42,178 +36,16 @@ public class RidgeMesh : TileMesh, IRidgeBased
     /// </summary>
     protected RidgeMesh(Hexagon hexagon, RidgeMeshParams parameters)
     {
-        _hexagon = hexagon;
-        _id = parameters.HexMeshParams.Id;
-        _diameter = parameters.HexMeshParams.Diameter;
-        _divisions = parameters.HexMeshParams.Divisions;
-        _frameState = parameters.HexMeshParams.FrameState;
-        _frameOffset = parameters.HexMeshParams.FrameOffset;
-        _material = parameters.HexMeshParams.Material;
-        
+        GetHexagon = hexagon;
+        _hexMeshParams = parameters.HexMeshParams;
         _plainNoise = parameters.PlainNoise;
         _ridgeNoise = parameters.RidgeNoise;
         
         // Initialize mesh
-        CreateMesh();
-        
+        Mesh = new HexMesh(hexagon, parameters.HexMeshParams);
         // Initialize processor based on orientation - Plane is default for this implementation
         _processor = new FlatMeshProcessor();
     }
-
-    /// <summary>
-    /// Creates the initial mesh from the hexagon
-    /// </summary>
-    protected virtual void CreateMesh()
-    {
-        _mesh = new Mesh();
-        _mesh.name = $"RidgeMesh_{_id}";
-        
-        // Calculate vertices, triangles, and other mesh data
-        List<Vector3> vertices = new List<Vector3>();
-        List<int> triangles = new List<int>();
-        
-        // Generate a triangulated mesh of the hexagon
-        TriangulateHexagon(vertices, triangles);
-        
-        // Add frame if needed
-        if (_frameState)
-        {
-            AddFrame(vertices, triangles);
-        }
-        
-        // Set mesh data
-        _mesh.vertices = vertices.ToArray();
-        _mesh.triangles = triangles.ToArray();
-        
-        // Calculate additional mesh data
-        _mesh.RecalculateNormals();
-        _mesh.RecalculateBounds();
-        CalculateUVs();
-    }
-    
-    /// <summary>
-    /// Triangulates a hexagon into mesh data
-    /// </summary>
-    protected void TriangulateHexagon(List<Vector3> vertices, List<int> triangles)
-    {
-        float hexRadius = _diameter / 2f;
-        Vector3 center = _hexagon.Center;
-        List<Vector3> cornerPoints = _hexagon.Points;
-        
-        // Subdivide the hexagon based on divisions parameter
-        float zStep = hexRadius / _divisions;
-        float halfZ = zStep / 2;
-        float xStep = zStep * Mathf.Sqrt(3) / 2;
-
-        float zInitEven = _diameter / 2f;
-        float zInitOdd = zInitEven - halfZ;
-        int triCount = _divisions * 2 + (_divisions * 2 - 1);
-
-        for (int layer = 0; layer < _divisions; layer++, triCount -= 2)
-        {
-            float zEven = zInitEven - (layer * halfZ);
-            float zOdd = zInitOdd - (layer * halfZ);
-
-            for (int i = 0; i < triCount; i++)
-            {
-                if ((i & 1) == 1) // Odd triangle
-                {
-                    Vector3 v1 = new Vector3(xStep * layer + xStep, 0, zOdd);
-                    Vector3 v2 = new Vector3(xStep * layer, 0, zOdd - halfZ);
-                    Vector3 v3 = new Vector3(xStep * layer + xStep, 0, zOdd - zStep);
-                    
-                    int baseIndex = vertices.Count;
-                    vertices.Add(v1);
-                    vertices.Add(v3);
-                    vertices.Add(v2);
-                    
-                    triangles.Add(baseIndex);
-                    triangles.Add(baseIndex + 1);
-                    triangles.Add(baseIndex + 2);
-                    
-                    zOdd -= zStep;
-                }
-                else // Even triangle
-                {
-                    Vector3 v1 = new Vector3(xStep * layer, 0, zEven);
-                    Vector3 v3 = new Vector3(xStep * layer, 0, zEven - zStep);
-                    Vector3 v2 = new Vector3(xStep * layer + xStep, 0, zEven - halfZ);
-                    
-                    int baseIndex = vertices.Count;
-                    vertices.Add(v1);
-                    vertices.Add(v2);
-                    vertices.Add(v3);
-                    
-                    triangles.Add(baseIndex);
-                    triangles.Add(baseIndex + 1);
-                    triangles.Add(baseIndex + 2);
-                    
-                    zEven -= zStep;
-                }
-            }
-        }
-
-        // Transform vertices to be centered around the hexagon center
-        for (int i = 0; i < vertices.Count; i++)
-        {
-            // Transform local coordinates to world space relative to hexagon center
-            vertices[i] = center + vertices[i] - new Vector3(_diameter / 4, 0, 0);
-        }
-    }
-    
-    /// <summary>
-    /// Adds a frame around the hexagon
-    /// </summary>
-    protected void AddFrame(List<Vector3> vertices, List<int> triangles)
-    {
-        List<Vector3> cornerPoints = _hexagon.Points;
-        
-        for (int i = 0; i < 6; i++)
-        {
-            Vector3 a = cornerPoints[i];
-            Vector3 b = cornerPoints[(i + 1) % 6];
-            Vector3 c = a + Vector3.down * _frameOffset;
-            Vector3 d = b + Vector3.down * _frameOffset;
-            
-            int baseIndex = vertices.Count;
-            vertices.AddRange(new[] { b, c, a, b, d, c });
-            
-            triangles.Add(baseIndex);
-            triangles.Add(baseIndex + 1);
-            triangles.Add(baseIndex + 2);
-            
-            triangles.Add(baseIndex + 3);
-            triangles.Add(baseIndex + 4);
-            triangles.Add(baseIndex + 5);
-        }
-    }
-    
-    /// <summary>
-    /// Calculates UVs for the mesh
-    /// </summary>
-    protected void CalculateUVs()
-    {
-        Vector3[] vertices = _mesh.vertices;
-        Vector2[] uvs = new Vector2[vertices.Length];
-        
-        float radius = _diameter / 2f;
-        float smallRadius = Mathf.Sqrt(3) * radius / 2f;
-        
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            Vector3 v = vertices[i];
-            float u = (v.x + smallRadius) / (2 * smallRadius);
-            float v_coord = (v.z + radius) / (2 * radius);
-            uvs[i] = new Vector2(u, v_coord);
-        }
-        
-        _mesh.uv = uvs;
-    }
-    
-    #region TileMesh Implementations
-    public override int GetId() => _id;
-    public override Mesh Mesh => _mesh;
-    #endregion
 
     #region IRidgeBased Implementations
     /// <summary>
@@ -236,12 +68,12 @@ public class RidgeMesh : TileMesh, IRidgeBased
     public virtual void CalculateInitialHeights()
     {
         Vector3 normal = Vector3.up;
-        _initialVertices = _mesh.vertices.Clone() as Vector3[];
+        _initialVertices = Mesh.Vertices.ToArray().Clone() as Vector3[];
 
-        Vector3[] vertices = _mesh.vertices;
+        Vector3[] vertices = Mesh.Vertices.ToArray();
         _processor.CalculateInitialHeights(vertices, _plainNoise, ref _minHeight, ref _maxHeight, normal);
-        _mesh.vertices = vertices;
-        _mesh.RecalculateBounds();
+        Mesh.Vertices = vertices.ToList();
+        Mesh.RecalculateBounds();
     }
 
     /// <summary>
@@ -255,13 +87,13 @@ public class RidgeMesh : TileMesh, IRidgeBased
             return;
         }
 
-        Vector3[] vertices = _mesh.vertices;
-        Vector3 center = _hexagon.Center;
+        Vector3[] vertices = Mesh.Vertices.ToArray();
+        Vector3 center = GetHexagon.Center;
 
         vertices = _processor.ShiftCompress(vertices, _yShift, _yCompress, center.y);
 
-        _mesh.vertices = vertices;
-        _mesh.RecalculateBounds();
+        Mesh.Vertices = vertices.ToList();
+        Mesh.RecalculateBounds();
     }
 
     /// <summary>
@@ -284,18 +116,15 @@ public class RidgeMesh : TileMesh, IRidgeBased
                 RidgeMesh ridgeMesh = neighbor as RidgeMesh;
                 if (ridgeMesh != null)
                 {
-                    neighboursCornerPoints.AddRange(ridgeMesh._hexagon.Points);
+                    neighboursCornerPoints.AddRange(ridgeMesh.GetHexagon.Points);
                 }
             }
         }
 
-        Vector3[] vertices = _mesh.vertices;
-        
-        float diameter = _diameter;
-        float radius = diameter / 2f;
+        Vector3[] vertices = Mesh.Vertices.ToArray();
         
         // Create a regular polygon from hexagon for calculations
-    RegularPolygon basePolygon = _hexagon;
+    RegularPolygon basePolygon = GetHexagon;
     
     // Calculate ridge-based heights
     for (int i = 0; i < vertices.Length; i++)
@@ -312,7 +141,7 @@ public class RidgeMesh : TileMesh, IRidgeBased
         // Check neighbor points for minimum distance
         foreach (var point in neighboursCornerPoints)
         {
-            Vector3Int discretePoint = GetDiscreteVertex(point, diameter / (divisions * 2));
+            Vector3Int discretePoint = GetDiscreteVertex(point, _hexMeshParams.Diameter / (divisions * 2));
             if (distanceMap.ContainsKey(discretePoint))
             {
                 float pointDistance = Vector2.Distance(
@@ -365,8 +194,9 @@ public class RidgeMesh : TileMesh, IRidgeBased
         _maxHeight = Mathf.Max(_maxHeight, newY);
     }
     
-    _mesh.vertices = vertices;
-    _mesh.RecalculateBounds();
+    Mesh.Vertices = vertices.ToList();
+    Mesh.RecalculateBounds();
+    
     }
     
     private Vector3Int GetDiscreteVertex(Vector3 point, float step)
@@ -473,11 +303,9 @@ public class RidgeMesh : TileMesh, IRidgeBased
     /// </summary>
     public void CalculateCornerPointsDistancesToBorder(DiscreteVertexToDistance distanceMap, int divisions)
     {
-        float diameter = _diameter;
-        
         // Discretize points based on divisions
         Func<Vector3, Vector3Int> divisioned = point => 
-            VertexToNormalDiscretizer.GetDiscreteVertex(point, diameter / (divisions * 2));
+            VertexToNormalDiscretizer.GetDiscreteVertex(point, _hexMeshParams.Diameter / (divisions * 2));
         
         // Collect neighbor corner points
         List<Vector3> neighboursCornerPoints = new List<Vector3>();
@@ -488,13 +316,13 @@ public class RidgeMesh : TileMesh, IRidgeBased
                 RidgeMesh ridgeMesh = neighbor as RidgeMesh;
                 if (ridgeMesh != null)
                 {
-                    neighboursCornerPoints.AddRange(ridgeMesh._hexagon.Points);
+                    neighboursCornerPoints.AddRange(ridgeMesh.GetHexagon.Points);
                 }
             }
         }
         
         // Calculate distances for each corner point
-        List<Vector3> cornerPoints = _hexagon.Points;
+        List<Vector3> cornerPoints = GetHexagon.Points;
         
         PointToLineDistance_VectorMultBased calculator = 
             new PointToLineDistance_VectorMultBased(GetExcludeBorderSet(), cornerPoints.ToArray());
@@ -540,9 +368,9 @@ public class RidgeMesh : TileMesh, IRidgeBased
     {
         HashSet<int> result = new HashSet<int>();
         
-        List<Vector3> cornerPoints = _hexagon.Points;
+        List<Vector3> cornerPoints = GetHexagon.Points;
         int size = cornerPoints.Count;
-        float approxR = _diameter / 2f;
+        float approxR = _hexMeshParams.Diameter / 2f;
         
         for (int i = 0; i < size; ++i)
         {
@@ -554,7 +382,7 @@ public class RidgeMesh : TileMesh, IRidgeBased
                 if (tileMesh == null)
                     return false;
                 
-                var neighborCenter = (tileMesh as RidgeMesh)?._hexagon.Center ?? Vector3.zero;
+                var neighborCenter = (tileMesh as RidgeMesh)?.GetHexagon.Center ?? Vector3.zero;
                 return Vector3.Distance(mid, neighborCenter) < (approxR * 1.1f);
             });
             
@@ -572,7 +400,7 @@ public class RidgeMesh : TileMesh, IRidgeBased
     /// </summary>
     public Vector3 GetCenter()
     {
-        return _hexagon.Center;
+        return GetHexagon.Center;
     }
 
     /// <summary>
@@ -604,7 +432,7 @@ public class RidgeMesh : TileMesh, IRidgeBased
     /// </summary>
     public void RecalculateNormals()
     {
-        _mesh.RecalculateNormals();
+        Mesh.RecalculateNormals();
     }
 
     /// <summary>
@@ -612,8 +440,8 @@ public class RidgeMesh : TileMesh, IRidgeBased
     /// </summary>
     public void RecalculateAllExceptVertices()
     {
-        _mesh.RecalculateNormals();
-        _mesh.RecalculateTangents();
-        _mesh.RecalculateBounds();
+        Mesh.RecalculateNormals();
+        Mesh.RecalculateTangents();
+        Mesh.RecalculateBounds();
     }
 }
