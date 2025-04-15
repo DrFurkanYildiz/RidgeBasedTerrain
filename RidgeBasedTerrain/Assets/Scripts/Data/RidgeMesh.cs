@@ -10,6 +10,7 @@ public class RidgeMesh : TileMesh, IRidgeBased
 {
     // Hexagon parameters
     protected Hexagon _hexagon;
+    public Hexagon GetHexagon => _hexagon;
     protected Mesh _mesh;
     protected int _id;
     protected float _diameter;
@@ -294,28 +295,168 @@ public class RidgeMesh : TileMesh, IRidgeBased
         float radius = diameter / 2f;
         
         // Create a regular polygon from hexagon for calculations
-        RegularPolygon basePolygon = new RegularPolygon(_hexagon.Center, radius, 6, Mathf.PI / 6f);
+    RegularPolygon basePolygon = _hexagon;
+    
+    // Calculate ridge-based heights
+    for (int i = 0; i < vertices.Length; i++)
+    {
+        Vector3 v = vertices[i];
+        Vector3 center = basePolygon.Center;
         
-        // Calculate ridge-based heights
-        vertices = _processor.CalculateRidgeBasedHeights(
-            vertices,
-            basePolygon,
-            _ridges.ToArray(),
-            neighboursCornerPoints.ToArray(),
-            radius,
-            GetExcludeBorderSet(),
-            diameter,
-            divisions,
-            distanceMap,
-            _ridgeNoise,
-            ridgeOffset,
-            interpolationFunc,
-            ref _minHeight,
-            ref _maxHeight
+        // Find closest ridge point
+        Vector3 closestRidgePoint = FindClosestRidgePoint(_ridges, new Vector2(v.x, v.z));
+        
+        // Calculate distance to border
+        float distanceToBorder = CalculateDistanceToBorder(v, basePolygon, GetExcludeBorderSet());
+        
+        // Check neighbor points for minimum distance
+        foreach (var point in neighboursCornerPoints)
+        {
+            Vector3Int discretePoint = GetDiscreteVertex(point, diameter / (divisions * 2));
+            if (distanceMap.ContainsKey(discretePoint))
+            {
+                float pointDistance = Vector2.Distance(
+                    new Vector2(v.x, v.z),
+                    new Vector2(point.x, point.z)
+                );
+                
+                distanceToBorder = Mathf.Min(
+                    distanceToBorder,
+                    pointDistance + distanceMap[discretePoint]
+                );
+            }
+        }
+        
+        // Calculate distance to ridge projection
+        float distanceToRidgeProjection = Vector2.Distance(
+            new Vector2(closestRidgePoint.x, closestRidgePoint.z),
+            new Vector2(v.x, v.z)
         );
         
-        _mesh.vertices = vertices;
-        _mesh.RecalculateBounds();
+        float approxEnd = closestRidgePoint.y;
+        
+        // Interpolation parameter
+        float t = distanceToBorder / (distanceToBorder + distanceToRidgeProjection);
+        
+        // Apply noise
+        float noise = (_ridgeNoise != null) ? 
+            Mathf.Abs(_ridgeNoise.GetNoise2D(v.x, v.z)) * 0.289f : 0;
+        
+        float tPerlin = 0;
+        if (!Mathf.Approximately(distanceToBorder, 0.0f))
+        {
+            tPerlin = 1 - (ridgeOffset - v.y * 2) / ridgeOffset;
+        }
+        
+        // Calculate final height
+        float newY = center.y + interpolationFunc(
+            v.y, 
+            approxEnd,
+            t
+        );
+        
+        newY -= Mathf.Lerp(0, noise, tPerlin);
+        
+        // Update vertex
+        vertices[i] = new Vector3(v.x, newY, v.z);
+        
+        // Update min/max heights
+        _minHeight = Mathf.Min(_minHeight, newY);
+        _maxHeight = Mathf.Max(_maxHeight, newY);
+    }
+    
+    _mesh.vertices = vertices;
+    _mesh.RecalculateBounds();
+    }
+    
+    private Vector3Int GetDiscreteVertex(Vector3 point, float step)
+    {
+        return new Vector3Int(
+            Mathf.RoundToInt(point.x / step),
+            Mathf.RoundToInt(point.y / step),
+            Mathf.RoundToInt(point.z / step)
+        );
+    }
+    
+    private float CalculateDistanceToBorder(Vector3 point, RegularPolygon polygon, HashSet<int> excludeBorderSet)
+    {
+        float minDistance = float.MaxValue;
+        List<Vector3> cornerPoints = polygon.Points;
+    
+        for (int i = 0; i < cornerPoints.Count; i++)
+        {
+            // Skip excluded borders
+            if (excludeBorderSet != null && excludeBorderSet.Contains(i))
+            {
+                continue;
+            }
+        
+            Vector3 p1 = cornerPoints[i];
+            Vector3 p2 = cornerPoints[(i + 1) % cornerPoints.Count];
+        
+            // Calculate distance from point to line segment (p1-p2)
+            Vector3 lineDir = p2 - p1;
+            Vector3 pointVec = point - p1;
+        
+            float lineLength = lineDir.magnitude;
+            Vector3 lineNormalized = lineDir / lineLength;
+        
+            // Project point onto line
+            float projection = Vector3.Dot(pointVec, lineNormalized);
+        
+            // Distance calculation based on projection
+            float distance;
+            if (projection < 0)
+            {
+                // Point projects before start of line segment
+                distance = Vector3.Distance(point, p1);
+            }
+            else if (projection > lineLength)
+            {
+                // Point projects after end of line segment
+                distance = Vector3.Distance(point, p2);
+            }
+            else
+            {
+                // Point projects onto line segment
+                Vector3 projectedPoint = p1 + lineNormalized * projection;
+                distance = Vector3.Distance(point, projectedPoint);
+            }
+        
+            minDistance = Mathf.Min(minDistance, distance);
+        }
+    
+        return minDistance;
+    }
+    
+    private Vector3 FindClosestRidgePoint(List<Ridge> ridges, Vector2 point)
+    {
+        if (ridges == null || ridges.Count == 0)
+        {
+            return new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        }
+    
+        Vector3 closest = Vector3.zero;
+        float minDistance = float.MaxValue;
+    
+        foreach (Ridge ridge in ridges)
+        {
+            foreach (Vector3 ridgePoint in ridge.GetPoints())
+            {
+                float dist = Vector2.Distance(
+                    new Vector2(ridgePoint.x, ridgePoint.z),
+                    point
+                );
+            
+                if (dist < minDistance)
+                {
+                    minDistance = dist;
+                    closest = ridgePoint;
+                }
+            }
+        }
+    
+        return closest;
     }
 
     /// <summary>

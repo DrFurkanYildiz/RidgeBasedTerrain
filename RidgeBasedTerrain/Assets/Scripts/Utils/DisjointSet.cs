@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-/// <summary>
-/// A disjoint-set (union-find) data structure implementation for generic types
-/// </summary>
 public class DisjointSet<T> where T : class
 {
     private Dictionary<T, T> parent = new Dictionary<T, T>();
     private Dictionary<T, int> rank = new Dictionary<T, int>();
     
-    /// <summary>
-    /// Creates a new set containing the given object
-    /// </summary>
     public void MakeSet(T item)
     {
         if (!parent.ContainsKey(item))
@@ -21,9 +14,6 @@ public class DisjointSet<T> where T : class
         }
     }
     
-    /// <summary>
-    /// Finds the representative of the set containing the given object
-    /// </summary>
     public T Find(T item)
     {
         if (!parent.ContainsKey(item))
@@ -39,9 +29,6 @@ public class DisjointSet<T> where T : class
         return parent[item];
     }
     
-    /// <summary>
-    /// Merges the sets containing the two objects
-    /// </summary>
     public void Union(T item1, T item2)
     {
         T root1 = Find(item1);
@@ -68,33 +55,45 @@ public class DisjointSet<T> where T : class
         }
     }
     
-    /// <summary>
-    /// Gets a list of all groups in the disjoint set
-    /// </summary>
     public List<List<T>> GetGroups()
     {
-        Dictionary<T, List<T>> groups = new Dictionary<T, List<T>>();
-        
-        // Group items by their root
-        foreach (T item in parent.Keys)
+        // Use a separate dictionary to track which root each item belongs to
+        Dictionary<T, T> compressedRoots = new Dictionary<T, T>();
+    
+        // First, get all roots without modifying the parent dictionary during enumeration
+        foreach (T item in new List<T>(parent.Keys))
         {
-            T root = Find(item);
-            
+            // Find the root but store it separately to avoid modification during iteration
+            T root = item;
+            while (!parent[root].Equals(root))
+            {
+                root = parent[root];
+            }
+            compressedRoots[item] = root;
+        }
+    
+        // Now group items by their root
+        Dictionary<T, List<T>> groups = new Dictionary<T, List<T>>();
+        foreach (var pair in compressedRoots)
+        {
+            T item = pair.Key;
+            T root = pair.Value;
+        
             if (!groups.ContainsKey(root))
             {
                 groups[root] = new List<T>();
             }
-            
+        
             groups[root].Add(item);
         }
-        
+    
         // Convert dictionary to list of lists
         List<List<T>> result = new List<List<T>>();
         foreach (var group in groups.Values)
         {
             result.Add(group);
         }
-        
+    
         return result;
     }
 }
