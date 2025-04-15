@@ -267,7 +267,7 @@ public class RidgeHexGrid : MonoBehaviour
 
         // Group tiles by biome type
         List<List<RidgeMesh>> mountainGroups = CollectBiomeGroups(Biome.Mountain);
-        List<List<RidgeMesh>> waterGroups = CollectBiomeGroups(Biome.Water);
+        //<List<RidgeMesh>> waterGroups = CollectBiomeGroups(Biome.Water);
         List<List<RidgeMesh>> plainGroups = CollectBiomeGroups(Biome.Plain);
         List<List<RidgeMesh>> hillGroups = CollectBiomeGroups(Biome.Hill);
 
@@ -276,12 +276,12 @@ public class RidgeHexGrid : MonoBehaviour
         {
             _mountainGroups.Add(new RidgeGroup(group, new RidgeSet(_ridgeConfig)));
         }
-
+/*
         foreach (var group in waterGroups)
         {
             _waterGroups.Add(new RidgeGroup(group, new RidgeSet(_ridgeConfig)));
         }
-
+*/
         foreach (var group in plainGroups)
         {
             _plainGroups.Add(new RidgeGroup(group));
