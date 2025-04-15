@@ -63,7 +63,7 @@ public class DisjointSet<T> where T : class
         Dictionary<T, List<T>> groups = new Dictionary<T, List<T>>();
         
         // Group items by their root
-        foreach (T item in parent.Keys)
+        foreach (var item in new List<T>(parent.Keys))
         {
             T root = Find(item);
             

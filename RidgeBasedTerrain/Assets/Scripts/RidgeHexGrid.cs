@@ -27,7 +27,8 @@ public class RidgeHexGrid : MonoBehaviour
 
     [SerializeField] private float biomesPlainHillGain = 0.1f;
 
-    [Header("Noise")] [SerializeField] private FastNoiseLite biomesNoise;
+    [Header("Noise")] 
+    [SerializeField] private FastNoiseLite biomesNoise;
     [SerializeField] private FastNoiseLite plainNoise;
     [SerializeField] private FastNoiseLite ridgeNoise;
 /*
@@ -60,7 +61,7 @@ public class RidgeHexGrid : MonoBehaviour
     private float _minHeight = float.MaxValue;
     private float _maxHeight = float.MinValue;
 
-    private void Awake()
+    private void Start()
     {
         InitializeConfiguration();
         GenerateGrid();
@@ -148,7 +149,7 @@ public class RidgeHexGrid : MonoBehaviour
 
             if (biomesNoise != null)
             {
-                heightValue = biomesNoise.GetNoise2D(pos.x, pos.z);
+                heightValue = biomesNoise.GetNoise3D(pos);
             }
 
             altitudes[i] = heightValue;
@@ -218,23 +219,17 @@ public class RidgeHexGrid : MonoBehaviour
             // Create the appropriate ridge mesh based on biome
             RidgeMesh ridgeMesh = RidgeMeshFactory.CreateRidgeMesh(biome, hex, ridgeParams);
 
+            // Create hex coordinates for this tile
+            HexCoordinates coords = HexCoordinates.FromPosition(position, diameter);
+            
+            
             // Create tile object
             GameObject tileObj = new GameObject($"Tile_{i}");
+            var tile = tileObj.AddComponent<BiomeTile>();
             tileObj.transform.SetParent(transform);
             tileObj.transform.position = position;
 
-            // Add mesh filter and renderer
-            MeshFilter meshFilter = tileObj.AddComponent<MeshFilter>();
-            meshFilter.mesh = ridgeMesh.Mesh.Mesh;
-
-            MeshRenderer meshRenderer = tileObj.AddComponent<MeshRenderer>();
-            meshRenderer.material = material;
-
-            // Create hex coordinates for this tile
-            HexCoordinates coords = HexCoordinates.FromPosition(position, diameter);
-
-            // Create BiomeTile and add to layout
-            BiomeTile tile = new BiomeTile(ridgeMesh, tileObj, biome, coords);
+            tile.Initialize(ridgeMesh, biome, coords, material);
             _tilesLayout[0].Add(tile);
         }
     }
@@ -267,7 +262,7 @@ public class RidgeHexGrid : MonoBehaviour
 
         // Group tiles by biome type
         List<List<RidgeMesh>> mountainGroups = CollectBiomeGroups(Biome.Mountain);
-        //<List<RidgeMesh>> waterGroups = CollectBiomeGroups(Biome.Water);
+        List<List<RidgeMesh>> waterGroups = CollectBiomeGroups(Biome.Water);
         List<List<RidgeMesh>> plainGroups = CollectBiomeGroups(Biome.Plain);
         List<List<RidgeMesh>> hillGroups = CollectBiomeGroups(Biome.Hill);
 
@@ -276,12 +271,12 @@ public class RidgeHexGrid : MonoBehaviour
         {
             _mountainGroups.Add(new RidgeGroup(group, new RidgeSet(_ridgeConfig)));
         }
-/*
+
         foreach (var group in waterGroups)
         {
             _waterGroups.Add(new RidgeGroup(group, new RidgeSet(_ridgeConfig)));
         }
-*/
+
         foreach (var group in plainGroups)
         {
             _plainGroups.Add(new RidgeGroup(group));

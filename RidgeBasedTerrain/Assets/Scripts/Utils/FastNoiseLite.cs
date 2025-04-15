@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
-
 /// <summary>
 /// A lightweight noise generation utility for procedural generation
 /// Based on the FastNoise Lite library
 /// </summary>
+[System.Serializable]
 public class FastNoiseLite
 {
     private System.Random random;
-    private int seed;
-    private float frequency = 0.01f;
+    [SerializeField] private int seed;
+    [SerializeField] private float frequency = 0.01f;
     
     /// <summary>
     /// Noise type for generation algorithms

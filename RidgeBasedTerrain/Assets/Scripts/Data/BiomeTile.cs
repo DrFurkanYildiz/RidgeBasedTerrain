@@ -4,11 +4,11 @@ using UnityEngine;
 /// <summary>
 /// Represents a hexagonal tile in the terrain grid with a specific biome type
 /// </summary>
-public class BiomeTile
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
+public class BiomeTile : MonoBehaviour
 {
     // Tile properties
     public RidgeMesh RidgeMesh { get; private set; }
-    public GameObject GameObject { get; private set; }
     public Biome Biome { get; private set; }
     public HexCoordinates Coordinates { get; private set; }
     
@@ -23,12 +23,19 @@ public class BiomeTile
     /// <summary>
     /// Creates a new BiomeTile with the specified ridge mesh, game object, biome type and coordinates
     /// </summary>
-    public BiomeTile(RidgeMesh ridgeMesh, GameObject gameObject, Biome biome, HexCoordinates coordinates)
+    public void Initialize(RidgeMesh ridgeMesh, Biome biome, HexCoordinates coordinates, Material material)
     {
         RidgeMesh = ridgeMesh;
-        GameObject = gameObject;
         Biome = biome;
         Coordinates = coordinates;
+        
+        
+        // Add mesh filter and renderer
+        MeshFilter meshFilter = GetComponent<MeshFilter>();
+        meshFilter.mesh = ridgeMesh.Mesh.Mesh;
+
+        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
+        meshRenderer.material = material;
         
         // Initialize neighbors with nulls
         for (int i = 0; i < 6; i++)

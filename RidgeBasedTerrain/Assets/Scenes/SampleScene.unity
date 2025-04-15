@@ -119,6 +119,72 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &110221770
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 110221772}
+  - component: {fileID: 110221771}
+  m_Layer: 0
+  m_Name: HexagonalRidgeHexGrid
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &110221771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 110221770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5cd3e06ebea43e6beb424b84be3bcab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  diameter: 1
+  divisions: 10
+  frameState: 0
+  frameOffset: 0
+  ridgeVariationMinBound: 0
+  ridgeVariationMaxBound: 0.02
+  ridgeTopOffset: 0.1
+  ridgeBottomOffset: -0.075
+  biomesHillLevelRatio: 0.7
+  biomesPlainHillGain: 0.1
+  biomesNoise:
+    seed: 0
+    frequency: 0
+  plainNoise:
+    seed: 0
+    frequency: 0
+  ridgeNoise:
+    seed: 0
+    frequency: 0
+  smoothNormals: 0
+  terrainMaterial: {fileID: 2100000, guid: 46c772695e46f5a468c713bae0f45374, type: 2}
+  size: 3
+--- !u!4 &110221772
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 110221770}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -437,7 +503,7 @@ GameObject:
   - component: {fileID: 1384742453}
   - component: {fileID: 1384742454}
   m_Layer: 0
-  m_Name: HexGridMap
+  m_Name: RectRidgeHexGrid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -480,10 +546,15 @@ MonoBehaviour:
   ridgeBottomOffset: -0.075
   biomesHillLevelRatio: 0.7
   biomesPlainHillGain: 0.1
-  plainTexture: {fileID: 2800000, guid: 910e53a3219dd48409cf12706e756862, type: 3}
-  hillTexture: {fileID: 2800000, guid: d7542ffb4f79b024f9d0cb9ab3999d4b, type: 3}
-  waterTexture: {fileID: 2800000, guid: 4112b3d89a4e7f947806ad2785aae975, type: 3}
-  mountainTexture: {fileID: 2800000, guid: 846a26185a354b64abcb7fb6d85af414, type: 3}
+  biomesNoise:
+    seed: 123
+    frequency: 0.1
+  plainNoise:
+    seed: 123
+    frequency: 0.1
+  ridgeNoise:
+    seed: 123
+    frequency: 0.1
   smoothNormals: 0
   terrainMaterial: {fileID: 2100000, guid: 46c772695e46f5a468c713bae0f45374, type: 2}
   height: 20
@@ -497,3 +568,4 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 1384742453}
+  - {fileID: 110221772}
