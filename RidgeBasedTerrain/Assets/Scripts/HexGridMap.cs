@@ -30,7 +30,7 @@ public class HexGridMap : MonoBehaviour
             var tileRow = new List<Tile>();
             for (int col = 0; col < colRowLayout[row].Count; col++)
             {
-                var hexagon = new Hexagon();
+                //var hexagon = new Hexagon();
                 var hexParams = new HexMeshParams()
                 {
                     Diameter = diameter,
@@ -40,7 +40,7 @@ public class HexGridMap : MonoBehaviour
                     ClipOptions = clipOptions
                 };
 
-                var tileMesh = new TileMesh(hexagon, hexParams);
+                //var tileMesh = new TileMesh(hexagon, hexParams);
                 
                 
                 GameObject tileObj = new GameObject($"Tile_{row}_{col}");
@@ -50,7 +50,7 @@ public class HexGridMap : MonoBehaviour
                 var offset = new OffsetCoordinates(row, col);
                 //var position = HexUtils.CubeToWorld(HexUtils.OffsetToCube(offset), diameter);
                 var position = PointyHexToPixel3D(offset, diameter);
-                tile.Initialize(tileMesh, position, material, offset);
+                //tile.Initialize(tileMesh, position, material, offset);
                 tileRow.Add(tile);
             }
             

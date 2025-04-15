@@ -16,9 +16,9 @@ public class Tile : MonoBehaviour
         meshFilter = gameObject.GetComponent<MeshFilter>();
         meshRenderer = gameObject.GetComponent<MeshRenderer>();
         
-        meshFilter.sharedMesh = tileMesh.HexMesh.Mesh;
-        meshRenderer.sharedMaterial = material;
-        transform.position = position;
+        //meshFilter.sharedMesh = tileMesh.HexMesh.Mesh;
+        //meshRenderer.sharedMaterial = material;
+        //transform.position = position;
     }
 
     private static bool IsOdd(int number) => (number % 2) != 0;
