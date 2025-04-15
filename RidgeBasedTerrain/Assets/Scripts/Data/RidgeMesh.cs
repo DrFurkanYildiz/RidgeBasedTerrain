@@ -444,4 +444,33 @@ public class RidgeMesh : TileMesh, IRidgeBased
         Mesh.RecalculateTangents();
         Mesh.RecalculateBounds();
     }
+    
+    
+    #region Optimization
+    
+    public int Id { get; set; }
+    public string Name { get; set; }
+
+    public override bool Equals(object obj)
+    {
+        if (obj is RidgeMesh other)
+        {
+            return Id == other.Id && string.Equals(Name, other.Name);
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        // Örneğin basit bir hash kodu hesaplama:
+        unchecked  // Aritmetik taşmaları yok sayılır.
+        {
+            int hash = 17;
+            hash = hash * 23 + Id.GetHashCode();
+            hash = hash * 23 + (Name != null ? Name.GetHashCode() : 0);
+            return hash;
+        }
+    }
+
+    #endregion
 }

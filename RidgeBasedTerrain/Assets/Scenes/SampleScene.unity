@@ -536,8 +536,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 715418a06a084bf2aa166db22e8e19d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  diameter: 1
-  divisions: 10
+  diameter: 10
+  divisions: 1
   frameState: 0
   frameOffset: 0
   ridgeVariationMinBound: 0.33
@@ -547,14 +547,14 @@ MonoBehaviour:
   biomesHillLevelRatio: 0.7
   biomesPlainHillGain: 0.1
   biomesNoise:
-    seed: 123
-    frequency: 0.1
+    seed: 2524
+    frequency: 0.15
   plainNoise:
-    seed: 123
-    frequency: 0.1
+    seed: 456
+    frequency: 0.2
   ridgeNoise:
-    seed: 123
-    frequency: 0.1
+    seed: 1453
+    frequency: 0.145
   smoothNormals: 0
   terrainMaterial: {fileID: 2100000, guid: 46c772695e46f5a468c713bae0f45374, type: 2}
   height: 20

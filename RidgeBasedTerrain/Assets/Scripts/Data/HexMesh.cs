@@ -225,7 +225,7 @@ public class HexMesh
         for (int i = 0; i < Vertices.Count; i++)
             boneWeights.Add(new BoneWeight());
     }
-
+    
     public void RecalculateBounds()
     {
         Mesh.RecalculateBounds();

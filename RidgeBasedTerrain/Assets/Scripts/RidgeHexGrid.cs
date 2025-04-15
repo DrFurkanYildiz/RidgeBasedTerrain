@@ -217,7 +217,7 @@ public class RidgeHexGrid : MonoBehaviour
             };
 
             // Create the appropriate ridge mesh based on biome
-            RidgeMesh ridgeMesh = RidgeMeshFactory.CreateRidgeMesh(biome, hex, ridgeParams);
+            var ridgeMesh = RidgeMeshFactory.CreateRidgeMesh(biome, hex, ridgeParams);
 
             // Create hex coordinates for this tile
             HexCoordinates coords = HexCoordinates.FromPosition(position, diameter);
