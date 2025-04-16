@@ -15,31 +15,31 @@ public class HexagonalRidgeHexGrid : RidgeHexGrid
     protected override List<Vector3> GenerateHexPositions()
     {
         List<Vector3> positions = new List<Vector3>();
-        float hexRadius = diameter / 2f;
-        float hexHeight = hexRadius * Mathf.Sqrt(3);
-        float hexWidth = hexRadius * 1.5f;
-        
-        // Calculate grid dimensions
-        //int diameter = size * 2 + 1;
-        //int center = size;
-        
+
+        float radius = diameter / 2f;
+        float width  = Mathf.Sqrt(3f) * radius;
+        float height = diameter;
+
+        float horiz = width;                     // tam genişlik
+        float vert  = height * 0.75f;            // ¾ * yükseklik
+
         for (int q = -size; q <= size; q++)
         {
-            int rStart = Mathf.Max(-size, -q - size);
-            int rEnd = Mathf.Min(size, -q + size);
-            
-            for (int r = rStart; r <= rEnd; r++)
+            int rMin = Mathf.Max(-size, -q - size);
+            int rMax = Mathf.Min(size, -q + size);
+
+            for (int r = rMin; r <= rMax; r++)
             {
-                // Convert axial coordinates to pixel coordinates
-                float x = hexWidth * (q + r / 2f);
-                float z = hexHeight * r;
-                
+                float x = horiz * (q + r / 2f);
+                float z = vert  * r;
                 positions.Add(new Vector3(x, 0f, z));
             }
         }
-        
+
         return positions;
     }
+
+
     
     /// <summary>
     /// Collects and groups ridge meshes by biome type
@@ -76,7 +76,7 @@ public class HexagonalRidgeHexGrid : RidgeHexGrid
                 
                 foreach (var neighborCoords in neighbors)
                 {
-                    if (_coordinatesToHexagon.TryGetValue(neighborCoords, out TileMesh neighborMesh))
+                    if (_coordinatesToHexagon.TryGetValue(neighborCoords, out RidgeMesh neighborMesh))
                     {
                         BiomeTile neighborTile = FindTileForMesh(neighborMesh);
                         if (neighborTile != null && neighborTile.Biome == biome)
@@ -95,7 +95,7 @@ public class HexagonalRidgeHexGrid : RidgeHexGrid
     /// <summary>
     /// Finds a BiomeTile for a given mesh
     /// </summary>
-    private BiomeTile FindTileForMesh(TileMesh mesh)
+    private BiomeTile FindTileForMesh(RidgeMesh mesh)
     {
         foreach (var row in _tilesLayout)
         {

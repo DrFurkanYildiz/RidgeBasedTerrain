@@ -17,26 +17,31 @@ public class RectRidgeHexGrid : RidgeHexGrid
     protected override List<Vector3> GenerateHexPositions()
     {
         List<Vector3> positions = new List<Vector3>();
-        float hexRadius = diameter / 2f;
-        float hexHeight = hexRadius * Mathf.Sqrt(3);
-        
+        float radius = diameter / 2f;
+    
+        // Tam yatay merkez mesafesi
+        float horizontalSpacing = diameter * Mathf.Sqrt(3f) / 2f;
+    
+        // Tam dikey merkez mesafesi
+        float verticalSpacing = radius * 1.5f;
+    
         for (int row = 0; row < height; row++)
         {
             for (int col = 0; col < width; col++)
             {
-                float xPos = col * (hexRadius * 1.5f);
-                float zPos = row * hexHeight;
-                
-                // Offset odd rows
+                float xPos = col * horizontalSpacing;
+                float zPos = row * verticalSpacing;
+            
+                // Tek satırları sağa kaydır (0.5 * yatay mesafe)
                 if (row % 2 == 1)
                 {
-                    xPos += hexRadius * 0.75f;
+                    xPos += horizontalSpacing / 2;
                 }
-                
+            
                 positions.Add(new Vector3(xPos, 0f, zPos));
             }
         }
-        
+    
         return positions;
     }
     
@@ -75,7 +80,7 @@ public class RectRidgeHexGrid : RidgeHexGrid
                 
                 foreach (var neighborCoords in neighbors)
                 {
-                    if (_coordinatesToHexagon.TryGetValue(neighborCoords, out TileMesh neighborMesh))
+                    if (_coordinatesToHexagon.TryGetValue(neighborCoords, out RidgeMesh neighborMesh))
                     {
                         BiomeTile neighborTile = FindTileForMesh(neighborMesh);
                         if (neighborTile != null && neighborTile.Biome == biome)
@@ -94,7 +99,7 @@ public class RectRidgeHexGrid : RidgeHexGrid
     /// <summary>
     /// Finds a BiomeTile for a given mesh
     /// </summary>
-    private BiomeTile FindTileForMesh(TileMesh mesh)
+    private BiomeTile FindTileForMesh(RidgeMesh mesh)
     {
         foreach (var row in _tilesLayout)
         {

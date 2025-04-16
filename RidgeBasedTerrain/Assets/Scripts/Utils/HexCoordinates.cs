@@ -5,6 +5,7 @@ using UnityEngine;
 /// <summary>
 /// Represents cube coordinates for hexagonal grid
 /// </summary>
+[System.Serializable]
 public struct HexCoordinates : IEquatable<HexCoordinates>
 {
     public int Q { get; private set; } // x axis
@@ -36,8 +37,36 @@ public struct HexCoordinates : IEquatable<HexCoordinates>
     }
     
     /// <summary>
+    /// Pointy‑topped hex’leri dünya‑koordinata çevirir.
+    /// </summary>
+    public static Vector3 HexToWorld(HexCoordinates hex, float diameter)
+    {
+        float radius = diameter * 0.5f;
+        // Amit Patel’in formülleri:
+        float x = radius * (Mathf.Sqrt(3f) * hex.Q + Mathf.Sqrt(3f) / 2f * hex.R);
+        float z = radius * (3f / 2f * hex.R);
+        return new Vector3(x, 0f, z);
+    }
+
+    /// <summary>
     /// Creates cube coordinates from world position
     /// </summary>
+    public static HexCoordinates FromPosition(Vector3 position, float diameter)
+    {
+        // radius = hex’in köşesine kadar uzaklığı
+        float radius = diameter / 2f;
+
+        // 1) Axial q ve r’yi gerçek konumdan hesapla
+        //    q = (√3/3 * x  -  1/3 * z) / radius
+        //    r = (2/3   * z)  / radius
+        float q = ((Mathf.Sqrt(3f) / 3f) * position.x  -  (1f / 3f) * position.z) / radius;
+        float r = (2f / 3f * position.z) / radius;
+
+        // 2) s = -q - r
+        // 3) En yakın tam küp koordinatına yuvarla
+        return CubeRound(q, r, -q - r);
+    }
+    /*
     public static HexCoordinates FromPosition(Vector3 position, float diameter)
     {
         float radius = diameter / 2f;
@@ -51,6 +80,7 @@ public struct HexCoordinates : IEquatable<HexCoordinates>
         // Round to nearest hex
         return CubeRound(q, r, -q - r);
     }
+    */
     
     /// <summary>
     /// Rounds floating point cube coordinates to the nearest hex
@@ -92,12 +122,12 @@ public struct HexCoordinates : IEquatable<HexCoordinates>
         return new List<HexCoordinates>
         {
             // Clockwise from NE
-            new HexCoordinates(Q+1, R-1, S),
-            new HexCoordinates(Q+1, R, S-1),
-            new HexCoordinates(Q, R+1, S-1),
-            new HexCoordinates(Q-1, R+1, S),
-            new HexCoordinates(Q-1, R, S+1),
-            new HexCoordinates(Q, R-1, S+1)
+            new HexCoordinates(Q + 1, R - 1, S),
+            new HexCoordinates(Q + 1, R, S - 1),
+            new HexCoordinates(Q, R + 1, S - 1),
+            new HexCoordinates(Q - 1, R + 1, S),
+            new HexCoordinates(Q - 1, R, S + 1),
+            new HexCoordinates(Q, R - 1, S + 1)
         };
     }
     

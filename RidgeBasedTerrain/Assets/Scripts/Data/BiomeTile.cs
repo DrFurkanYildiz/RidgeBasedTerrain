@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -9,16 +10,16 @@ public class BiomeTile : MonoBehaviour
 {
     // Tile properties
     public RidgeMesh RidgeMesh { get; private set; }
-    public Biome Biome { get; private set; }
-    public HexCoordinates Coordinates { get; private set; }
+    [field:SerializeField] public Biome Biome { get; private set; }
+    [field: SerializeField] public HexCoordinates Coordinates { get; private set; }
     
     // Neighboring tiles
-    private List<TileMesh> _neighbors = new List<TileMesh>(6);
-    
+    private List<RidgeMesh> _neighbors = new List<RidgeMesh>(6);
+    public List<Vector3> debugNeigbour = new();
     /// <summary>
     /// Gets the neighbors of this tile
     /// </summary>
-    public List<TileMesh> Neighbors => _neighbors;
+    public List<RidgeMesh> Neighbors => _neighbors;
     
     /// <summary>
     /// Creates a new BiomeTile with the specified ridge mesh, game object, biome type and coordinates
@@ -28,7 +29,6 @@ public class BiomeTile : MonoBehaviour
         RidgeMesh = ridgeMesh;
         Biome = biome;
         Coordinates = coordinates;
-        
         
         // Add mesh filter and renderer
         MeshFilter meshFilter = GetComponent<MeshFilter>();
@@ -47,7 +47,7 @@ public class BiomeTile : MonoBehaviour
     /// <summary>
     /// Sets the neighboring tiles
     /// </summary>
-    public void SetNeighbors(List<TileMesh> neighbors)
+    public void SetNeighbors(List<RidgeMesh> neighbors)
     {
         _neighbors = neighbors;
         
@@ -56,5 +56,8 @@ public class BiomeTile : MonoBehaviour
         {
             _neighbors.Add(null);
         }
+
+
+        debugNeigbour = neighbors.Where(n => n != null ).Select(n => n.GetCenter()).ToList();
     }
 }

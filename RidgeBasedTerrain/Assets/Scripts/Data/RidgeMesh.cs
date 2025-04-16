@@ -6,10 +6,10 @@ using UnityEngine;
 /// <summary>
 /// The RidgeMesh class represents a hexagonal mesh with ridge-based terrain generation capabilities.
 /// </summary>
-public class RidgeMesh : TileMesh, IRidgeBased
+public abstract class RidgeMesh
 {
     // Hexagon parameters
-    public override HexMesh Mesh { get; }
+    public HexMesh Mesh { get; }
     private HexMeshParams _hexMeshParams;
     public Hexagon GetHexagon { get; }
 
@@ -17,7 +17,7 @@ public class RidgeMesh : TileMesh, IRidgeBased
     protected FastNoiseLite _plainNoise;
     protected FastNoiseLite _ridgeNoise;
     protected List<Ridge> _ridges = new List<Ridge>();
-    protected List<TileMesh> _neighbours = new List<TileMesh>();
+    protected List<RidgeMesh> _neighbours = new List<RidgeMesh>();
     
     // Height tracking
     protected float _minHeight = float.MaxValue;
@@ -406,7 +406,7 @@ public class RidgeMesh : TileMesh, IRidgeBased
     /// <summary>
     /// Gets neighboring tile meshes
     /// </summary>
-    public List<TileMesh> GetNeighbours()
+    public List<RidgeMesh> GetNeighbours()
     {
         return _neighbours.Where(n => n != null).ToList();
     }
@@ -414,7 +414,7 @@ public class RidgeMesh : TileMesh, IRidgeBased
     /// <summary>
     /// Sets neighboring tile meshes
     /// </summary>
-    public void SetNeighbours(List<TileMesh> neighbours)
+    public void SetNeighbours(List<RidgeMesh> neighbours)
     {
         _neighbours = neighbours;
     }

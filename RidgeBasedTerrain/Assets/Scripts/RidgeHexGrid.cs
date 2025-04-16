@@ -54,7 +54,7 @@ public class RidgeHexGrid : MonoBehaviour
 
     // Tiles and management
     protected List<List<BiomeTile>> _tilesLayout = new List<List<BiomeTile>>();
-    protected Dictionary<HexCoordinates, TileMesh> _coordinatesToHexagon = new Dictionary<HexCoordinates, TileMesh>();
+    protected Dictionary<HexCoordinates, RidgeMesh> _coordinatesToHexagon = new Dictionary<HexCoordinates, RidgeMesh>();
     private DiscreteVertexToDistance _distanceMap = new DiscreteVertexToDistance();
 
     // Default heights for min/max
@@ -323,7 +323,7 @@ public class RidgeHexGrid : MonoBehaviour
 
                 // Get cube coordinates and calculate neighbors
                 HexCoordinates cubeCurrent = biomeTile.Coordinates;
-                List<TileMesh> hexagonNeighbors = new List<TileMesh>(6) { null, null, null, null, null, null };
+                List<RidgeMesh> hexagonNeighbors = new List<RidgeMesh>(6) { null, null, null, null, null, null };
                 List<HexCoordinates> neighborsCoords = cubeCurrent.GetNeighbors();
 
                 // Assign neighbors
@@ -331,12 +331,12 @@ public class RidgeHexGrid : MonoBehaviour
                 {
                     HexCoordinates n = neighborsCoords[i];
 
-                    if (_coordinatesToHexagon.TryGetValue(n, out TileMesh neighborMesh))
+                    if (_coordinatesToHexagon.TryGetValue(n, out RidgeMesh neighborMesh))
                     {
-                        RidgeMesh castedNeighbor = neighborMesh as RidgeMesh;
+                        //RidgeMesh castedNeighbor = neighborMesh as RidgeMesh;
 
                         // Only assign neighbors from the same group
-                        if (castedNeighbor != null && MemberOfGroup(castedNeighbor) && MemberOfGroup(ridgeMesh))
+                        if (neighborMesh != null && MemberOfGroup(neighborMesh) && MemberOfGroup(ridgeMesh))
                         {
                             hexagonNeighbors[i] = neighborMesh;
                         }
@@ -486,9 +486,9 @@ public class RidgeHexGrid : MonoBehaviour
     /// <summary>
     /// Gets all meshes in the grid
     /// </summary>
-    private List<TileMesh> GetAllMeshes()
+    private List<RidgeMesh> GetAllMeshes()
     {
-        List<TileMesh> meshes = new List<TileMesh>();
+        List<RidgeMesh> meshes = new List<RidgeMesh>();
 
         foreach (var row in _tilesLayout)
         {

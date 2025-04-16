@@ -11,12 +11,12 @@ public class DiscreteVertexToNormals : Dictionary<Vector3Int, List<Vector3>> { }
 /// </summary>
 public class SmoothShadesProcessor
 {
-    private List<TileMesh> _meshes;
+    private List<RidgeMesh> _meshes;
     
     /// <summary>
     /// Creates a new SmoothShadesProcessor for the specified meshes
     /// </summary>
-    public SmoothShadesProcessor(List<TileMesh> meshes)
+    public SmoothShadesProcessor(List<RidgeMesh> meshes)
     {
         _meshes = meshes;
     }
@@ -44,7 +44,7 @@ public class SmoothShadesProcessor
     /// </summary>
     private void UpdateMeshes()
     {
-        foreach (TileMesh mesh in _meshes)
+        foreach (RidgeMesh mesh in _meshes)
         {
             if (mesh is RidgeMesh ridgeMesh)
             {
@@ -58,7 +58,7 @@ public class SmoothShadesProcessor
     /// </summary>
     private void CalculateFlatNormals()
     {
-        foreach (TileMesh mesh in _meshes)
+        foreach (RidgeMesh mesh in _meshes)
         {
             if (mesh is RidgeMesh ridgeMesh)
             {
@@ -75,7 +75,7 @@ public class SmoothShadesProcessor
         // First collect all vertex normals
         List<DiscreteVertexToNormals> vertexGroups = new List<DiscreteVertexToNormals>();
         
-        foreach (TileMesh mesh in _meshes)
+        foreach (RidgeMesh mesh in _meshes)
         {
             if (mesh is RidgeMesh ridgeMesh)
             {
