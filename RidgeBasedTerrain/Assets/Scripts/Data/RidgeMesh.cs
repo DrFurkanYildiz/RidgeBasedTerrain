@@ -10,6 +10,7 @@ public abstract class RidgeMesh
 {
     // Hexagon parameters
     public HexMesh Mesh { get; }
+    protected int _id;
     private HexMeshParams _hexMeshParams;
     public Hexagon GetHexagon { get; }
 
@@ -18,16 +19,16 @@ public abstract class RidgeMesh
     protected FastNoiseLite _ridgeNoise;
     protected List<Ridge> _ridges = new List<Ridge>();
     protected List<RidgeMesh> _neighbours = new List<RidgeMesh>();
-    
+
     // Height tracking
     protected float _minHeight = float.MaxValue;
     protected float _maxHeight = float.MinValue;
     protected float _yShift = 0.0f;
     protected float _yCompress = 1.0f;
-    
+
     // Initial vertices
     protected Vector3[] _initialVertices;
-    
+
     // Processor for mesh calculations
     protected MeshProcessor _processor;
 
@@ -37,10 +38,11 @@ public abstract class RidgeMesh
     protected RidgeMesh(Hexagon hexagon, RidgeMeshParams parameters)
     {
         GetHexagon = hexagon;
+        _id = parameters.HexMeshParams.Id;
         _hexMeshParams = parameters.HexMeshParams;
         _plainNoise = parameters.PlainNoise;
         _ridgeNoise = parameters.RidgeNoise;
-        
+
         // Initialize mesh
         Mesh = new HexMesh(hexagon, parameters.HexMeshParams);
         // Initialize processor based on orientation - Plane is default for this implementation
@@ -48,6 +50,7 @@ public abstract class RidgeMesh
     }
 
     #region IRidgeBased Implementations
+
     /// <summary>
     /// Gets the minimum and maximum height of the mesh
     /// </summary>
@@ -65,7 +68,7 @@ public abstract class RidgeMesh
     /// <summary>
     /// Calculates initial heights based on noise
     /// </summary>
-    public virtual void CalculateInitialHeights()
+    public void CalculateInitialHeights()
     {
         Vector3 normal = Vector3.up;
         _initialVertices = Mesh.Vertices.ToArray().Clone() as Vector3[];
@@ -99,7 +102,7 @@ public abstract class RidgeMesh
     /// <summary>
     /// Calculates ridge-based heights
     /// </summary>
-    public void CalculateRidgeBasedHeights(
+    protected void CalculateRidgeBasedHeights(
         Func<float, float, float, float> interpolationFunc,
         float ridgeOffset,
         DiscreteVertexToDistance distanceMap,
@@ -113,92 +116,86 @@ public abstract class RidgeMesh
         {
             if (neighbor != null)
             {
-                RidgeMesh ridgeMesh = neighbor as RidgeMesh;
-                if (ridgeMesh != null)
-                {
-                    neighboursCornerPoints.AddRange(ridgeMesh.GetHexagon.Points);
-                }
+                neighboursCornerPoints.AddRange(neighbor.GetHexagon.Points);
             }
         }
 
         Vector3[] vertices = Mesh.Vertices.ToArray();
-        
+
         // Create a regular polygon from hexagon for calculations
-    RegularPolygon basePolygon = GetHexagon;
-    
-    // Calculate ridge-based heights
-    for (int i = 0; i < vertices.Length; i++)
-    {
-        Vector3 v = vertices[i];
-        Vector3 center = basePolygon.Center;
-        
-        // Find closest ridge point
-        Vector3 closestRidgePoint = FindClosestRidgePoint(_ridges, new Vector2(v.x, v.z));
-        
-        // Calculate distance to border
-        float distanceToBorder = CalculateDistanceToBorder(v, basePolygon, GetExcludeBorderSet());
-        
-        // Check neighbor points for minimum distance
-        foreach (var point in neighboursCornerPoints)
+        RegularPolygon basePolygon = GetHexagon;
+
+        // Calculate ridge-based heights
+        for (int i = 0; i < vertices.Length; i++)
         {
-            Vector3Int discretePoint = GetDiscreteVertex(point, _hexMeshParams.Diameter / (divisions * 2));
-            if (distanceMap.ContainsKey(discretePoint))
+            Vector3 v = vertices[i];
+            Vector3 center = basePolygon.Center;
+
+            // Find closest ridge point
+            Vector3 closestRidgePoint = FindClosestRidgePoint(_ridges, new Vector2(v.x, v.z));
+
+            // Calculate distance to border
+            float distanceToBorder = CalculateDistanceToBorder(v, basePolygon, GetExcludeBorderSet());
+
+            // Check neighbor points for minimum distance
+            foreach (var point in neighboursCornerPoints)
             {
-                float pointDistance = Vector2.Distance(
-                    new Vector2(v.x, v.z),
-                    new Vector2(point.x, point.z)
-                );
-                
-                distanceToBorder = Mathf.Min(
-                    distanceToBorder,
-                    pointDistance + distanceMap[discretePoint]
-                );
+                Vector3Int discretePoint = GetDiscreteVertex(point, _hexMeshParams.Diameter / (divisions * 2));
+                if (distanceMap.ContainsKey(discretePoint))
+                {
+                    float pointDistance = Vector2.Distance(
+                        new Vector2(v.x, v.z),
+                        new Vector2(point.x, point.z)
+                    );
+
+                    distanceToBorder = Mathf.Min(
+                        distanceToBorder,
+                        pointDistance + distanceMap[discretePoint]
+                    );
+                }
             }
+
+            // Calculate distance to ridge projection
+            float distanceToRidgeProjection = Vector2.Distance(
+                new Vector2(closestRidgePoint.x, closestRidgePoint.z),
+                new Vector2(v.x, v.z)
+            );
+
+            float approxEnd = closestRidgePoint.y;
+
+            // Interpolation parameter
+            float t = distanceToBorder / (distanceToBorder + distanceToRidgeProjection);
+
+            // Apply noise
+            float noise = (_ridgeNoise != null) ? Mathf.Abs(_ridgeNoise.GetNoise2D(v.x, v.z)) * 0.289f : 0;
+
+            float tPerlin = 0;
+            if (!Mathf.Approximately(distanceToBorder, 0.0f))
+            {
+                tPerlin = 1 - (ridgeOffset - v.y * 2) / ridgeOffset;
+            }
+
+            // Calculate final height
+            float newY = center.y + interpolationFunc(
+                v.y,
+                approxEnd,
+                t
+            );
+
+            newY -= Mathf.Lerp(0, noise, tPerlin);
+
+            // Update vertex
+            vertices[i] = new Vector3(v.x, newY, v.z);
+
+            // Update min/max heights
+            _minHeight = Mathf.Min(_minHeight, newY);
+            _maxHeight = Mathf.Max(_maxHeight, newY);
         }
-        
-        // Calculate distance to ridge projection
-        float distanceToRidgeProjection = Vector2.Distance(
-            new Vector2(closestRidgePoint.x, closestRidgePoint.z),
-            new Vector2(v.x, v.z)
-        );
-        
-        float approxEnd = closestRidgePoint.y;
-        
-        // Interpolation parameter
-        float t = distanceToBorder / (distanceToBorder + distanceToRidgeProjection);
-        
-        // Apply noise
-        float noise = (_ridgeNoise != null) ? 
-            Mathf.Abs(_ridgeNoise.GetNoise2D(v.x, v.z)) * 0.289f : 0;
-        
-        float tPerlin = 0;
-        if (!Mathf.Approximately(distanceToBorder, 0.0f))
-        {
-            tPerlin = 1 - (ridgeOffset - v.y * 2) / ridgeOffset;
-        }
-        
-        // Calculate final height
-        float newY = center.y + interpolationFunc(
-            v.y, 
-            approxEnd,
-            t
-        );
-        
-        newY -= Mathf.Lerp(0, noise, tPerlin);
-        
-        // Update vertex
-        vertices[i] = new Vector3(v.x, newY, v.z);
-        
-        // Update min/max heights
-        _minHeight = Mathf.Min(_minHeight, newY);
-        _maxHeight = Mathf.Max(_maxHeight, newY);
+
+        Mesh.Vertices = vertices.ToList();
+        Mesh.RecalculateBounds();
     }
-    
-    Mesh.Vertices = vertices.ToList();
-    Mesh.RecalculateBounds();
-    
-    }
-    
+
     private Vector3Int GetDiscreteVertex(Vector3 point, float step)
     {
         return new Vector3Int(
@@ -207,12 +204,12 @@ public abstract class RidgeMesh
             Mathf.RoundToInt(point.z / step)
         );
     }
-    
+
     private float CalculateDistanceToBorder(Vector3 point, RegularPolygon polygon, HashSet<int> excludeBorderSet)
     {
         float minDistance = float.MaxValue;
         List<Vector3> cornerPoints = polygon.Points;
-    
+
         for (int i = 0; i < cornerPoints.Count; i++)
         {
             // Skip excluded borders
@@ -220,20 +217,20 @@ public abstract class RidgeMesh
             {
                 continue;
             }
-        
+
             Vector3 p1 = cornerPoints[i];
             Vector3 p2 = cornerPoints[(i + 1) % cornerPoints.Count];
-        
+
             // Calculate distance from point to line segment (p1-p2)
             Vector3 lineDir = p2 - p1;
             Vector3 pointVec = point - p1;
-        
+
             float lineLength = lineDir.magnitude;
             Vector3 lineNormalized = lineDir / lineLength;
-        
+
             // Project point onto line
             float projection = Vector3.Dot(pointVec, lineNormalized);
-        
+
             // Distance calculation based on projection
             float distance;
             if (projection < 0)
@@ -252,23 +249,23 @@ public abstract class RidgeMesh
                 Vector3 projectedPoint = p1 + lineNormalized * projection;
                 distance = Vector3.Distance(point, projectedPoint);
             }
-        
+
             minDistance = Mathf.Min(minDistance, distance);
         }
-    
+
         return minDistance;
     }
-    
+
     private Vector3 FindClosestRidgePoint(List<Ridge> ridges, Vector2 point)
     {
         if (ridges == null || ridges.Count == 0)
         {
             return new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
         }
-    
+
         Vector3 closest = Vector3.zero;
         float minDistance = float.MaxValue;
-    
+
         foreach (Ridge ridge in ridges)
         {
             foreach (Vector3 ridgePoint in ridge.GetPoints())
@@ -277,7 +274,7 @@ public abstract class RidgeMesh
                     new Vector2(ridgePoint.x, ridgePoint.z),
                     point
                 );
-            
+
                 if (dist < minDistance)
                 {
                     minDistance = dist;
@@ -285,7 +282,7 @@ public abstract class RidgeMesh
                 }
             }
         }
-    
+
         return closest;
     }
 
@@ -304,9 +301,9 @@ public abstract class RidgeMesh
     public void CalculateCornerPointsDistancesToBorder(DiscreteVertexToDistance distanceMap, int divisions)
     {
         // Discretize points based on divisions
-        Func<Vector3, Vector3Int> divisioned = point => 
+        Func<Vector3, Vector3Int> divisioned = point =>
             VertexToNormalDiscretizer.GetDiscreteVertex(point, _hexMeshParams.Diameter / (divisions * 2));
-        
+
         // Collect neighbor corner points
         List<Vector3> neighboursCornerPoints = new List<Vector3>();
         foreach (var neighbor in _neighbours)
@@ -320,17 +317,17 @@ public abstract class RidgeMesh
                 }
             }
         }
-        
+
         // Calculate distances for each corner point
         List<Vector3> cornerPoints = GetHexagon.Points;
-        
-        PointToLineDistance_VectorMultBased calculator = 
+
+        PointToLineDistance_VectorMultBased calculator =
             new PointToLineDistance_VectorMultBased(GetExcludeBorderSet(), cornerPoints.ToArray());
-        
+
         foreach (var v in cornerPoints)
         {
             float distanceToBorder = calculator.Calc(v);
-            
+
             // Check for minimum distance considering neighbors
             foreach (var point in neighboursCornerPoints)
             {
@@ -338,7 +335,7 @@ public abstract class RidgeMesh
                     new Vector2(v.x, v.z),
                     new Vector2(point.x, point.z)
                 );
-                
+
                 Vector3Int discretePoint = divisioned(point);
                 if (distanceMap.ContainsKey(discretePoint))
                 {
@@ -348,17 +345,18 @@ public abstract class RidgeMesh
                     );
                 }
             }
-            
+
             // Update distance in the map
             Vector3Int discreteV = divisioned(v);
             if (distanceMap.ContainsKey(discreteV))
             {
                 distanceToBorder = Mathf.Min(distanceToBorder, distanceMap[discreteV]);
             }
-            
+
             distanceMap[discreteV] = distanceToBorder;
         }
     }
+
     #endregion
 
     /// <summary>
@@ -367,31 +365,32 @@ public abstract class RidgeMesh
     protected HashSet<int> GetExcludeBorderSet()
     {
         HashSet<int> result = new HashSet<int>();
-        
+
         List<Vector3> cornerPoints = GetHexagon.Points;
         int size = cornerPoints.Count;
         float approxR = _hexMeshParams.Diameter / 2f;
-        
+
         for (int i = 0; i < size; ++i)
         {
             Vector3 p1 = cornerPoints[i];
             Vector3 p2 = cornerPoints[(i + 1) % size];
             Vector3 mid = (p1 + p2) / 2;
-            
-            bool shouldExclude = _neighbours.Any(tileMesh => {
+
+            bool shouldExclude = _neighbours.Any(tileMesh =>
+            {
                 if (tileMesh == null)
                     return false;
-                
+
                 var neighborCenter = (tileMesh as RidgeMesh)?.GetHexagon.Center ?? Vector3.zero;
                 return Vector3.Distance(mid, neighborCenter) < (approxR * 1.1f);
             });
-            
+
             if (shouldExclude)
             {
                 result.Add(i);
             }
         }
-        
+
         return result;
     }
 
@@ -408,7 +407,7 @@ public abstract class RidgeMesh
     /// </summary>
     public List<RidgeMesh> GetNeighbours()
     {
-        return _neighbours.Where(n => n != null).ToList();
+        return _neighbours;
     }
 
     /// <summary>
@@ -425,6 +424,11 @@ public abstract class RidgeMesh
     public void SetRidges(List<Ridge> ridges)
     {
         _ridges = ridges;
+    }
+
+    public List<Ridge> GetRidges()
+    {
+        return _ridges;
     }
 
     /// <summary>
@@ -444,33 +448,7 @@ public abstract class RidgeMesh
         Mesh.RecalculateTangents();
         Mesh.RecalculateBounds();
     }
-    
-    
-    #region Optimization
-    
-    public int Id { get; set; }
-    public string Name { get; set; }
 
-    public override bool Equals(object obj)
-    {
-        if (obj is RidgeMesh other)
-        {
-            return Id == other.Id && string.Equals(Name, other.Name);
-        }
-        return false;
-    }
-
-    public override int GetHashCode()
-    {
-        // Örneğin basit bir hash kodu hesaplama:
-        unchecked  // Aritmetik taşmaları yok sayılır.
-        {
-            int hash = 17;
-            hash = hash * 23 + Id.GetHashCode();
-            hash = hash * 23 + (Name != null ? Name.GetHashCode() : 0);
-            return hash;
-        }
-    }
-
-    #endregion
+    public override bool Equals(object obj) => obj is RidgeMesh other && _id == other._id;
+    public override int GetHashCode() => _id;
 }

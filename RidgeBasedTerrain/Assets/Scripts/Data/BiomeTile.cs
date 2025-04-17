@@ -15,11 +15,13 @@ public class BiomeTile : MonoBehaviour
     
     // Neighboring tiles
     private List<RidgeMesh> _neighbors = new List<RidgeMesh>(6);
-    public List<Vector3> debugNeigbour = new();
     /// <summary>
     /// Gets the neighbors of this tile
     /// </summary>
     public List<RidgeMesh> Neighbors => _neighbors;
+    
+    public List<Vector3> debugNeighbour=new();
+    public List<Vector3> debugVertex = new();
     
     /// <summary>
     /// Creates a new BiomeTile with the specified ridge mesh, game object, biome type and coordinates
@@ -44,20 +46,60 @@ public class BiomeTile : MonoBehaviour
         }
     }
     
+    private void Update()
+    {
+        if (RidgeMesh != null)
+        {
+            debugNeighbour = RidgeMesh.GetNeighbours().Where(n => n != null).Select(n => n.GetCenter()).ToList();
+            debugVertex = RidgeMesh.Mesh.Vertices;
+        }
+    }
+    
     /// <summary>
     /// Sets the neighboring tiles
     /// </summary>
     public void SetNeighbors(List<RidgeMesh> neighbors)
     {
         _neighbors = neighbors;
-        
         // Ensure we have 6 elements (can be null)
         while (_neighbors.Count < 6)
         {
             _neighbors.Add(null);
         }
-
-
-        debugNeigbour = neighbors.Where(n => n != null ).Select(n => n.GetCenter()).ToList();
+    }
+    
+    // Debug için OnDrawGizmos metodunu ekleyelim
+    private void OnDrawGizmos()
+    {
+        // Tile konumunu göster //2452
+        Gizmos.color = GetBiomeColor();
+        Gizmos.DrawSphere(transform.position, 0.375f);
+        
+        // Komşuları göster
+        Gizmos.color = Color.yellow;
+        foreach (var neighbor in _neighbors)
+        {
+            if (neighbor != null)
+            {
+                Gizmos.DrawLine(transform.position, neighbor.GetCenter());
+            }
+        }
+    }
+    
+    private Color GetBiomeColor()
+    {
+        switch (Biome)
+        {
+            case Biome.Mountain:
+                return Color.grey;
+            case Biome.Water:
+                return Color.blue;
+            case Biome.Plain:
+                return Color.green;
+            case Biome.Hill:
+                return new Color(0.5f, 0.25f, 0);
+            default:
+                return Color.white;
+        }
     }
 }

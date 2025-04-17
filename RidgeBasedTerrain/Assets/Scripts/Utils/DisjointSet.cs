@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-public class DisjointSet<T> where T : class
+public class DisjointSet<T>
 {
     private Dictionary<T, T> parent = new Dictionary<T, T>();
     private Dictionary<T, int> rank = new Dictionary<T, int>();
@@ -13,12 +13,12 @@ public class DisjointSet<T> where T : class
             rank[item] = 0;
         }
     }
-    
-    public T Find(T item)
+
+    private T Find(T item)
     {
         if (!parent.ContainsKey(item))
         {
-            return null;
+            return default;
         }
         
         if (!parent[item].Equals(item))
@@ -62,10 +62,19 @@ public class DisjointSet<T> where T : class
     {
         Dictionary<T, List<T>> groups = new Dictionary<T, List<T>>();
         
-        // Group items by their root
-        foreach (var item in parent.Keys)
+        // Önce tüm elemanların köklerini bulalım
+        // Bu, parent dictionary'sini değiştirecek ama aynı zamanda
+        // bu değişiklikler sonraki döngüleri etkilemeyecek
+        Dictionary<T, T> itemToRoot = new Dictionary<T, T>();
+        foreach (var item in new List<T>(parent.Keys))
         {
-            T root = Find(item);
+            itemToRoot[item] = Find(item);
+        }
+        
+        // Şimdi elemanları köklerine göre gruplandıralım
+        foreach (var item in itemToRoot.Keys)
+        {
+            T root = itemToRoot[item];
             
             if (!groups.ContainsKey(root))
             {

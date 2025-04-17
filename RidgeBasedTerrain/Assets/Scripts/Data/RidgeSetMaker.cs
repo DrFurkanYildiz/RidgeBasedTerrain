@@ -30,9 +30,8 @@ public class RidgeSetMaker
         List<RidgeMesh> unvisited = new List<RidgeMesh>();
         var allNeighbours = mesh.GetNeighbours();
         
-        foreach (var tileMesh in allNeighbours)
+        foreach (var ridgeMesh in allNeighbours)
         {
-            RidgeMesh ridgeMesh = tileMesh as RidgeMesh;
             if (ridgeMesh != null && !_visited.Contains(ridgeMesh) && _meshes.Contains(ridgeMesh))
             {
                 unvisited.Add(ridgeMesh);

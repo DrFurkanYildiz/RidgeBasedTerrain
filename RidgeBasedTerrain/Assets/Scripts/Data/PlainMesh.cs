@@ -10,7 +10,6 @@ public class PlainMesh : RidgeMesh
     public override void CalculateFinalHeights(DiscreteVertexToDistance distanceMap, float diameter, int divisions)
     {
         ShiftCompress();
-        Debug.Log("Plain");
         // Update min/max heights
         _minHeight += _yShift;
         _minHeight *= _yCompress;

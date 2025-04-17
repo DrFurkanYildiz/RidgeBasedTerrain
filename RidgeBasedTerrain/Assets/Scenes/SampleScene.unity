@@ -169,6 +169,7 @@ MonoBehaviour:
     frequency: 0
   smoothNormals: 0
   terrainMaterial: {fileID: 2100000, guid: 46c772695e46f5a468c713bae0f45374, type: 2}
+  debugMountain: 
   size: 3
 --- !u!4 &110221772
 Transform:
@@ -537,7 +538,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   diameter: 1
-  divisions: 6
+  divisions: 4
   frameState: 0
   frameOffset: 0
   ridgeVariationMinBound: 0.33
@@ -557,6 +558,7 @@ MonoBehaviour:
     frequency: 0.145
   smoothNormals: 0
   terrainMaterial: {fileID: 2100000, guid: 46c772695e46f5a468c713bae0f45374, type: 2}
+  debugMountain: 
   height: 20
   width: 20
   clipped: 0

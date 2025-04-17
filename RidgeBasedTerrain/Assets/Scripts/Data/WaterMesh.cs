@@ -9,7 +9,6 @@ public class WaterMesh : RidgeMesh
     
     public override void CalculateFinalHeights(DiscreteVertexToDistance distanceMap, float diameter, int divisions)
     {
-        Debug.Log("Final");
         // Use cosine interpolation for water terrain
         CalculateRidgeBasedHeights(
             Cosrp, 

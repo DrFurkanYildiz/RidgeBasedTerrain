@@ -132,32 +132,4 @@ public class Ridge
         // Recalculate points with new heights
         CalculatePoints();
     }
-    
-    /// <summary>
-    /// Draws the ridge using Gizmos for visualization in the editor
-    /// </summary>
-    public void DrawGizmo(Color color)
-    {
-        Gizmos.color = color;
-        
-        // Draw bezier curve segments
-        for (int i = 0; i < _points.Count - 1; i++)
-        {
-            Gizmos.DrawLine(_points[i], _points[i + 1]);
-        }
-        
-        // Draw control points
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(_start, 0.1f);
-        Gizmos.DrawSphere(_end, 0.1f);
-        
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(_control1, 0.075f);
-        Gizmos.DrawSphere(_control2, 0.075f);
-        
-        // Draw control lines
-        Gizmos.color = new Color(1, 1, 0, 0.5f);
-        Gizmos.DrawLine(_start, _control1);
-        Gizmos.DrawLine(_control2, _end);
-    }
 }
