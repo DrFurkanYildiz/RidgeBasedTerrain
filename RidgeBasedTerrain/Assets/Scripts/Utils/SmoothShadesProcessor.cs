@@ -48,7 +48,7 @@ public class SmoothShadesProcessor
         {
             if (mesh is RidgeMesh ridgeMesh)
             {
-                ridgeMesh.RecalculateNormals();
+                ridgeMesh.Mesh.Mesh.RecalculateNormals();
             }
         }
     }
@@ -62,7 +62,7 @@ public class SmoothShadesProcessor
         {
             if (mesh is RidgeMesh ridgeMesh)
             {
-                ridgeMesh.RecalculateNormals();
+                ridgeMesh.Mesh.Mesh.RecalculateNormals();
             }
         }
     }

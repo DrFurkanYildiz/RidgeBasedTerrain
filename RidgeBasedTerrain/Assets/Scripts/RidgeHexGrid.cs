@@ -69,7 +69,7 @@ public class RidgeHexGrid : MonoBehaviour
         InitializeConfiguration();
         GenerateGrid();
     }
-
+    
     /// <summary>
     /// Initializes configuration parameters
     /// </summary>
@@ -508,7 +508,7 @@ public class RidgeHexGrid : MonoBehaviour
 
                 // Calculate final heights based on biome and ridge configuration
                 mesh.CalculateFinalHeights(_distanceMap, diameter, divisions);
-                mesh.RecalculateNormals();
+                mesh.Mesh.Mesh.RecalculateNormals();
             }
         }
     }
@@ -530,7 +530,7 @@ public class RidgeHexGrid : MonoBehaviour
             {
                 foreach (var tile in row)
                 {
-                    tile.RidgeMesh.RecalculateNormals();
+                    tile.RidgeMesh.Mesh.Mesh.RecalculateNormals();
                 }
             }
         }

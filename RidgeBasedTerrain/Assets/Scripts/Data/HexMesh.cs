@@ -55,6 +55,17 @@ public class HexMesh
         };
     }
     
+    public void UpdateMesh()
+    {
+        // Apply updated vertices to mesh
+        Mesh.vertices = Vertices.ToArray();
+    
+        // Update affected mesh properties
+        Mesh.RecalculateNormals();
+        Mesh.RecalculateTangents();
+        Mesh.RecalculateBounds();
+    }
+    
     private void CalculateVertices()
     {
         Vertices.Clear();
@@ -224,20 +235,5 @@ public class HexMesh
         boneWeights.Clear();
         for (int i = 0; i < Vertices.Count; i++)
             boneWeights.Add(new BoneWeight());
-    }
-    
-    public void RecalculateBounds()
-    {
-        Mesh.RecalculateBounds();
-    }
-
-    public void RecalculateNormals()
-    {
-        Mesh.RecalculateNormals();
-    }
-
-    public void RecalculateTangents()
-    {
-        Mesh.RecalculateTangents();
     }
 }

@@ -538,24 +538,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   diameter: 1
-  divisions: 4
+  divisions: 10
   frameState: 0
   frameOffset: 0
-  ridgeVariationMinBound: 0.33
-  ridgeVariationMaxBound: 0.44
-  ridgeTopOffset: 0.1
+  ridgeVariationMinBound: 0.1
+  ridgeVariationMaxBound: 0.6
+  ridgeTopOffset: 0.11
   ridgeBottomOffset: -0.075
   biomesHillLevelRatio: 0.7
   biomesPlainHillGain: 0.1
   biomesNoise:
-    seed: 2524
-    frequency: 0.15
+    seed: 92
+    frequency: 0.1
   plainNoise:
-    seed: 456
-    frequency: 0.2
+    seed: 21
+    frequency: 0.01
   ridgeNoise:
-    seed: 1453
-    frequency: 0.145
+    seed: 69
+    frequency: 1.69
   smoothNormals: 0
   terrainMaterial: {fileID: 2100000, guid: 46c772695e46f5a468c713bae0f45374, type: 2}
   debugMountain: 

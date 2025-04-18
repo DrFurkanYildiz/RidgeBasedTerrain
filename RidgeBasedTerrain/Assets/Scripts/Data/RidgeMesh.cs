@@ -49,8 +49,6 @@ public abstract class RidgeMesh
         _processor = new FlatMeshProcessor();
     }
 
-    #region IRidgeBased Implementations
-
     /// <summary>
     /// Gets the minimum and maximum height of the mesh
     /// </summary>
@@ -76,7 +74,7 @@ public abstract class RidgeMesh
         Vector3[] vertices = Mesh.Vertices.ToArray();
         _processor.CalculateInitialHeights(vertices, _plainNoise, ref _minHeight, ref _maxHeight, normal);
         Mesh.Vertices = vertices.ToList();
-        Mesh.RecalculateBounds();
+        Mesh.UpdateMesh();
     }
 
     /// <summary>
@@ -96,7 +94,7 @@ public abstract class RidgeMesh
         vertices = _processor.ShiftCompress(vertices, _yShift, _yCompress, center.y);
 
         Mesh.Vertices = vertices.ToList();
-        Mesh.RecalculateBounds();
+        Mesh.UpdateMesh();
     }
 
     /// <summary>
@@ -193,7 +191,7 @@ public abstract class RidgeMesh
         }
 
         Mesh.Vertices = vertices.ToList();
-        Mesh.RecalculateBounds();
+        Mesh.UpdateMesh();
     }
 
     private Vector3Int GetDiscreteVertex(Vector3 point, float step)
@@ -293,6 +291,7 @@ public abstract class RidgeMesh
     {
         // Base implementation just performs shift compress
         ShiftCompress();
+        Mesh.UpdateMesh();
     }
 
     /// <summary>
@@ -357,12 +356,10 @@ public abstract class RidgeMesh
         }
     }
 
-    #endregion
-
     /// <summary>
     /// Gets the set of borders to exclude based on neighbor placement
     /// </summary>
-    protected HashSet<int> GetExcludeBorderSet()
+    private HashSet<int> GetExcludeBorderSet()
     {
         HashSet<int> result = new HashSet<int>();
 
@@ -430,25 +427,7 @@ public abstract class RidgeMesh
     {
         return _ridges;
     }
-
-    /// <summary>
-    /// Recalculates normals for the mesh
-    /// </summary>
-    public void RecalculateNormals()
-    {
-        Mesh.RecalculateNormals();
-    }
-
-    /// <summary>
-    /// Updates all mesh data except vertices
-    /// </summary>
-    public void RecalculateAllExceptVertices()
-    {
-        Mesh.RecalculateNormals();
-        Mesh.RecalculateTangents();
-        Mesh.RecalculateBounds();
-    }
-
+    
     public override bool Equals(object obj) => obj is RidgeMesh other && _id == other._id;
     public override int GetHashCode() => _id;
 }
