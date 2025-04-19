@@ -10,11 +10,10 @@ public class MountainMesh : RidgeMesh
     
     public override void CalculateFinalHeights(DiscreteVertexToDistance distanceMap, float diameter, int divisions)
     {
-        base.CalculateFinalHeights(distanceMap, diameter, divisions);
         // Use linear interpolation for mountain terrain
         CalculateRidgeBasedHeights(
             (a, b, c) => Mathf.Lerp(a, b, c),
-            diameter,
+            diameter / 4,
             distanceMap,
             divisions
         );

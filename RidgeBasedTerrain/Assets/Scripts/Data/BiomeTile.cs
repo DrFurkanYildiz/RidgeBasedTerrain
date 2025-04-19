@@ -19,9 +19,9 @@ public class BiomeTile : MonoBehaviour
     /// Gets the neighbors of this tile
     /// </summary>
     public List<RidgeMesh> Neighbors => _neighbors;
-    
-    public List<Vector3> debugNeighbour=new();
-    public List<Vector3> debugVertex = new();
+
+    public float debugMin;
+    public float debugMax;
     
     /// <summary>
     /// Creates a new BiomeTile with the specified ridge mesh, game object, biome type and coordinates
@@ -50,8 +50,9 @@ public class BiomeTile : MonoBehaviour
     {
         if (RidgeMesh != null)
         {
-            debugNeighbour = RidgeMesh.GetNeighbours().Where(n => n != null).Select(n => n.GetCenter()).ToList();
-            debugVertex = RidgeMesh.Mesh.Vertices;
+            (debugMin, debugMax) = RidgeMesh.GetMinMaxHeight();
+            //debugNeighbour = RidgeMesh.GetNeighbours().Where(n => n != null).Select(n => n.GetCenter()).ToList();
+            //debugVertex = RidgeMesh.Mesh.Vertices;
         }
     }
     

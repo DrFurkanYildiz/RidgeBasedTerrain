@@ -289,9 +289,7 @@ public abstract class RidgeMesh
     /// </summary>
     public virtual void CalculateFinalHeights(DiscreteVertexToDistance distanceMap, float diameter, int divisions)
     {
-        // Base implementation just performs shift compress
         ShiftCompress();
-        Mesh.UpdateMesh();
     }
 
     /// <summary>

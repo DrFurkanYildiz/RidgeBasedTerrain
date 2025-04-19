@@ -28,19 +28,20 @@ public class RidgeHexGrid : MonoBehaviour
 
     [SerializeField] private float biomesPlainHillGain = 0.1f;
 
-    [Header("Noise")] 
-    [SerializeField] private FastNoiseLite biomesNoise;
+    [Header("Noise")] [SerializeField] private FastNoiseLite biomesNoise;
     [SerializeField] private FastNoiseLite plainNoise;
+
     [SerializeField] private FastNoiseLite ridgeNoise;
+
 /*
-    [Header("Textures")] [SerializeField] 
+    [Header("Textures")] [SerializeField]
     private Texture2D plainTexture;
     [SerializeField] private Texture2D hillTexture;
     [SerializeField] private Texture2D waterTexture;
     [SerializeField] private Texture2D mountainTexture;
 */
     [Header("Appearance")] [SerializeField]
-    private bool smoothNormals = false;
+    private bool smoothNormals;
 
     [SerializeField] private Material terrainMaterial;
 
@@ -52,8 +53,6 @@ public class RidgeHexGrid : MonoBehaviour
     private List<RidgeGroup> _waterGroups = new List<RidgeGroup>();
     private List<RidgeGroup> _plainGroups = new List<RidgeGroup>();
     private List<RidgeGroup> _hillGroups = new List<RidgeGroup>();
-
-    public List<int> debugMountain = new();
 
     // Tiles and management
     protected List<List<BiomeTile>> _tilesLayout = new List<List<BiomeTile>>();
@@ -69,7 +68,7 @@ public class RidgeHexGrid : MonoBehaviour
         InitializeConfiguration();
         GenerateGrid();
     }
-    
+
     /// <summary>
     /// Initializes configuration parameters
     /// </summary>
@@ -85,7 +84,7 @@ public class RidgeHexGrid : MonoBehaviour
     /// <summary>
     /// Generates the complete hex grid with biomes and terrain features
     /// </summary>
-    public void GenerateGrid()
+    private void GenerateGrid()
     {
         // Clear any existing tiles
         ClearGrid();
@@ -111,21 +110,6 @@ public class RidgeHexGrid : MonoBehaviour
 
         // Calculate smooth normals if enabled
         CalculateNormals();
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            foreach (var row in _tilesLayout)
-            {
-                foreach (var tile in row)
-                {
-                    //tile.RidgeMesh.Mesh.UpdateMesh();
-                    //Debug.Log(tile + " mesh update!");
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -240,8 +224,8 @@ public class RidgeHexGrid : MonoBehaviour
 
             // Create hex coordinates for this tile
             HexCoordinates coords = HexCoordinates.FromPosition(position, diameter);
-            
-            
+
+
             // Create tile object
             GameObject tileObj = new GameObject($"Tile_{i}");
             var tile = tileObj.AddComponent<BiomeTile>();
@@ -284,13 +268,11 @@ public class RidgeHexGrid : MonoBehaviour
         List<List<RidgeMesh>> waterGroups = CollectBiomeGroups(Biome.Water);
         List<List<RidgeMesh>> plainGroups = CollectBiomeGroups(Biome.Plain);
         List<List<RidgeMesh>> hillGroups = CollectBiomeGroups(Biome.Hill);
-        
+
         // Create ridge groups
         foreach (var group in mountainGroups)
         {
             _mountainGroups.Add(new RidgeGroup(group, new RidgeSet(_ridgeConfig)));
-
-            debugMountain.Add(group.Count);
         }
 
         foreach (var group in waterGroups)
@@ -307,6 +289,8 @@ public class RidgeHexGrid : MonoBehaviour
         {
             _hillGroups.Add(new RidgeGroup(group));
         }
+
+        //PrintBiomes();
     }
 
     /// <summary>
@@ -351,7 +335,7 @@ public class RidgeHexGrid : MonoBehaviour
                 // Debug: Koordinat ve komşuları göster
                 //Debug.Log($"Tile at {cubeCurrent} has {neighborsCoords.Count} potential neighbors");
                 int neighborCount = 0;
-                
+
                 // Assign neighbors
                 for (int i = 0; i < neighborsCoords.Count; i++)
                 {
@@ -408,10 +392,10 @@ public class RidgeHexGrid : MonoBehaviour
                 // Count non-null neighbors
                 var nonNullList = biomeTile.Neighbors.Where(n => n != null).ToList();
                 var nonNullCount = nonNullList.Count;
-            
+
                 // Set the neighbors from the tile onto the ridge mesh
                 ridgeMesh.SetNeighbours(nonNullList);
-            
+
                 if (nonNullCount > 0)
                 {
                     tilesWithNeighbors++;
@@ -427,9 +411,6 @@ public class RidgeHexGrid : MonoBehaviour
     /// </summary>
     private void InitRidges(List<RidgeGroup> groups, float ridgeOffset)
     {
-        // Ridge offset değerini artırın - test için
-        ridgeOffset *= 4.0f; // Test için değeri artırın
-    
         foreach (var group in groups)
         {
             //Debug.Log($"Initializing ridges for group with {group.GetMeshes().Count} meshes using offset {ridgeOffset}");
@@ -572,7 +553,7 @@ public class RidgeHexGrid : MonoBehaviour
     /// <summary>
     /// Prints information about biome group distribution
     /// </summary>
-    public void PrintBiomes()
+    private void PrintBiomes()
     {
         Debug.Log("\nBiome Groups:");
 

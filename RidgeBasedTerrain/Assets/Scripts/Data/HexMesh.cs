@@ -8,10 +8,10 @@ public class HexMesh
     private bool frameState;
     private float frameOffset;
     private ClipOptions clipOptions;
-    
+
     private float R => diameter / 2f;
     private float r => Mathf.Sqrt(3) * R / 2f;
-    
+
     private List<Vector3> cornerPoints = new List<Vector3>();
     private List<Vector4> tangents = new List<Vector4>();
     private List<Color> colors = new List<Color>();
@@ -23,7 +23,6 @@ public class HexMesh
     public List<Vector3> Vertices { get; set; } = new List<Vector3>();
     public List<Vector3> Normals { get; set; } = new List<Vector3>();
 
-
     public HexMesh(Hexagon hexagon, HexMeshParams hexMeshParams)
     {
         diameter = hexMeshParams.Diameter;
@@ -32,7 +31,7 @@ public class HexMesh
         frameOffset = hexMeshParams.FrameOffset;
         clipOptions = hexMeshParams.ClipOptions;
         cornerPoints = hexagon.Points;
-        
+
         CalculateVertices();
         if (frameState) AddFrame();
         CalculateIndices();
@@ -41,7 +40,7 @@ public class HexMesh
         CalculateColors();
         CalculateUVs();
         CalculateBoneWeights();
-        
+
         Mesh = new Mesh
         {
             name = "HexMesh",
@@ -54,18 +53,18 @@ public class HexMesh
             boneWeights = boneWeights.ToArray()
         };
     }
-    
+
     public void UpdateMesh()
     {
         // Apply updated vertices to mesh
         Mesh.vertices = Vertices.ToArray();
-    
+
         // Update affected mesh properties
         Mesh.RecalculateNormals();
         Mesh.RecalculateTangents();
         Mesh.RecalculateBounds();
     }
-    
+
     private void CalculateVertices()
     {
         Vertices.Clear();
@@ -123,6 +122,7 @@ public class HexMesh
             Vertices.AddRange(new[] { p0, p2, p1 });
         }
     }
+
     private void ZClip(float boundary)
     {
         float zStep = R / divisions;
@@ -139,15 +139,43 @@ public class HexMesh
 
             if (boundary > 0)
             {
-                if (p0.z > boundary) { toFixCount++; toFix = p0; }
-                if (p1.z > boundary) { toFixCount++; toFix = p1; }
-                if (p2.z > boundary) { toFixCount++; toFix = p2; }
+                if (p0.z > boundary)
+                {
+                    toFixCount++;
+                    toFix = p0;
+                }
+
+                if (p1.z > boundary)
+                {
+                    toFixCount++;
+                    toFix = p1;
+                }
+
+                if (p2.z > boundary)
+                {
+                    toFixCount++;
+                    toFix = p2;
+                }
             }
             else
             {
-                if (p0.z < boundary) { toFixCount++; toFix = p0; }
-                if (p1.z < boundary) { toFixCount++; toFix = p1; }
-                if (p2.z < boundary) { toFixCount++; toFix = p2; }
+                if (p0.z < boundary)
+                {
+                    toFixCount++;
+                    toFix = p0;
+                }
+
+                if (p1.z < boundary)
+                {
+                    toFixCount++;
+                    toFix = p1;
+                }
+
+                if (p2.z < boundary)
+                {
+                    toFixCount++;
+                    toFix = p2;
+                }
             }
 
             if (toFixCount > 1) continue;
@@ -165,17 +193,7 @@ public class HexMesh
 
         Vertices = filtered;
     }
-
-    //Hata alırsak corner kesabında pi eksi ile çarpılıyor
-    private void CalculateCornerPoints()
-    {
-        for (int i = 0; i < 6; i++)
-        {
-            float angle = Mathf.PI / 6f + i * Mathf.PI / 3f;
-            cornerPoints[i] = new Vector3(Mathf.Cos(angle) * R, 0, Mathf.Sin(angle) * R);
-        }
-    }
-
+    
     private void AddFrame()
     {
         for (int i = 0; i < 6; i++)
@@ -184,7 +202,7 @@ public class HexMesh
             var b = cornerPoints[(i + 1) % 6];
             var c = a + Vector3.down * frameOffset;
             var d = b + Vector3.down * frameOffset;
-            Vertices.AddRange(new[] { b, c, a, b, d, c});
+            Vertices.AddRange(new[] { b, c, a, b, d, c });
         }
     }
 

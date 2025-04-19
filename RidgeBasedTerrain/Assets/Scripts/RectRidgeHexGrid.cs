@@ -10,7 +10,7 @@ public class RectRidgeHexGrid : RidgeHexGrid
     private int height = 5;
 
     [SerializeField] private int width = 5;
-    [SerializeField] private bool clipped = false;
+    //[SerializeField] private bool clipped = false;
 
     /// <summary>
     /// Generates positions for a rectangular grid of hexagons
